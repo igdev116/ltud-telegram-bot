@@ -2,6 +2,9 @@ import os
 from dotenv import load_dotenv
 
 from datetime import datetime
+import math
+import requests
+import json
 
 import logging
 from telegram import *
@@ -9,6 +12,7 @@ from telegram.ext import *
 
 load_dotenv()
 BOT_API_KEY = os.environ.get('BOT_API_KEY')
+WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY')
 
 print('Bot started...')
 
@@ -18,7 +22,14 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-TIME, WEATHER = range(2)
+# get weather response
+city = 'Da Nang'
+base_url = 'http://api.openweathermap.org/data/2.5/weather?q=' + \
+    city + '&appid=' + WEATHER_API_KEY + '&units=metric&lang=vi'
+response = requests.get(base_url).json()
+
+# TIME, WEATHER = range(2)
+HANDLE = range(1)
 
 
 def start_cmd(update, context):
@@ -40,22 +51,22 @@ def start_cmd(update, context):
         ),
     )
 
-    return TIME
+    return HANDLE
 
 
-def time(update, context):
+def handle_input(update, context):
     now = datetime.now()
     date_time = now.strftime('%d/%m/%y, %H:%M:%S')
 
-    update.message.reply_text(date_time, reply_markup=ReplyKeyboardRemove())
+    description = response['weather'][0]['description'].capitalize()
+    temp = math.ceil(int(response['main']['temp']))
+    result = fr'{description}, {temp}°C'
 
-
-def cancel_time(update, context):
-    update.message.reply_text(
-        'Thank you! I hope we can talk again some day.'
-    )
-
-    return ConversationHandler.END
+    if (update.message.text).lower() == 'time':
+        update.message.reply_text(
+            date_time, reply_markup=ReplyKeyboardRemove())
+    else:
+        update.message.reply_text(result, reply_markup=ReplyKeyboardRemove())
 
 
 def cancel(update, context):
@@ -82,7 +93,7 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_cmd)],
         states={
-            TIME: [MessageHandler(Filters.regex('^(Time|Weather)$'), time), CommandHandler('cancel', cancel_time)],
+            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather)$'), handle_input), CommandHandler('cancel', cancel)],
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
