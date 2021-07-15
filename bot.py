@@ -56,16 +56,18 @@ def start_cmd(update, context):
 
 def handle_input(update, context):
     now = datetime.now()
-    date_time = now.strftime('%d/%m/%y, %H:%M:%S')
-
     description = response['weather'][0]['description'].capitalize()
     temp = math.ceil(int(response['main']['temp']))
-    result = fr'{description}, {temp}°C'
 
-    if (update.message.text).lower() == 'time':
+    date_time = now.strftime('%d/%m/%y, %H:%M:%S')
+    result = fr'{description}, {temp}°C'
+    warn = 'Please choose a valid option'
+    msg = (update.message.text).lower()
+
+    if msg == 'time':
         update.message.reply_text(
             date_time, reply_markup=ReplyKeyboardRemove())
-    else:
+    elif msg == 'weather':
         update.message.reply_text(result, reply_markup=ReplyKeyboardRemove())
 
 
@@ -93,7 +95,7 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_cmd)],
         states={
-            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather)$'), handle_input), CommandHandler('cancel', cancel)],
+            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather|time|weather)$'), handle_input), CommandHandler('cancel', cancel)],
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
