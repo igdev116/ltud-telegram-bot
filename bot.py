@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from datetime import datetime
 import math
 import requests
-import json
 
 import logging
 from telegram import *
@@ -43,7 +42,7 @@ def start_cmd(update, context):
 
     update.message.reply_text(
         "Hi! I'm LTUD's bot. I will hold a conversation with you.\n"
-        'Send /cancel to stop asking to me.\n\n'
+        'Send /help to get help from me or send /cancel to stop asking to me.\n\n'
         'Want to know the time or the weather?',
 
         reply_markup=ReplyKeyboardMarkup(
@@ -54,24 +53,44 @@ def start_cmd(update, context):
     return HANDLE
 
 
-def handle_input(update, context):
+def time():
     now = datetime.now()
+
+    date_time = now.strftime('%d/%m/%y, %H:%M:%S')
+
+    return date_time
+
+
+def weather():
     description = response['weather'][0]['description'].capitalize()
     temp = math.ceil(int(response['main']['temp']))
 
-    date_time = now.strftime('%d/%m/%y, %H:%M:%S')
     result = fr'{description}, {temp}°C'
-    warn = 'Please choose a valid option'
+
+    return result
+
+
+def handleInput(update, context):
     msg = (update.message.text).lower()
 
     if msg == 'time':
         update.message.reply_text(
-            date_time, reply_markup=ReplyKeyboardRemove())
+            time(), reply_markup=ReplyKeyboardRemove())
     elif msg == 'weather':
-        update.message.reply_text(result, reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text(
+            weather(), reply_markup=ReplyKeyboardRemove())
 
 
-def cancel(update, context):
+def echo(update, context):
+    update.message.reply_text(update.message.text)
+
+
+def help_cmd(update, context):
+    update.message.reply_text(
+        'If you need help! You should ask for it on Google!')
+
+
+def cancel_cmd(update, context):
     user = update.message.from_user
 
     logger.info("User %s canceled the conversation.", user.first_name)
@@ -82,11 +101,6 @@ def cancel(update, context):
     return ConversationHandler.END
 
 
-def help_cmd(update, context):
-    update.message.reply_text(
-        'If you need help! You should ask for it on Google!')
-
-
 def main():
     updater = Updater(BOT_API_KEY)
 
@@ -95,12 +109,13 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_cmd)],
         states={
-            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather|time|weather)$'), handle_input), CommandHandler('cancel', cancel)],
+            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather|time|weather)$'), handleInput), CommandHandler('cancel', cancel_cmd)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)],
+        fallbacks=[CommandHandler('cancel', cancel_cmd)],
     )
 
     dp.add_handler(conv_handler)
+    dp.add_handler(MessageHandler(Filters.text, echo))
     dp.add_handler(CommandHandler("help", help_cmd))
 
     updater.start_polling()
