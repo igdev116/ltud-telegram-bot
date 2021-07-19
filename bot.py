@@ -92,9 +92,18 @@ def handleInput(update, context):
         update.message.reply_text(
             time(), reply_markup=ReplyKeyboardRemove())
     elif msg == 'weather':
+        waiter = 'Hold on ...  🐢'
+
+        # wait to fetch data
+        update.message.reply_text(waiter, reply_markup=ReplyKeyboardRemove())
+
         update.message.reply_text(
             weather(), reply_markup=ReplyKeyboardRemove())
     elif msg == 'covid':
+        waiter = 'Wai a minute ...  😷'
+
+        # wait to fetch data
+        update.message.reply_text(waiter, reply_markup=ReplyKeyboardRemove())
         update.message.reply_text(
             covid(), reply_markup=ReplyKeyboardRemove())
 
