@@ -48,7 +48,7 @@ def start_cmd(update, context):
 
 
 def time():
-    now = datetime.now()
+    now = datetime.today()
 
     date_time = now.strftime('%d/%m/%y, %H:%M:%S')
 
