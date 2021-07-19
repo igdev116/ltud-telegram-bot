@@ -37,7 +37,7 @@ def start_cmd(update, context):
     update.message.reply_text(
         "Hi! I'm LTUD's bot. I will hold a conversation with you.\n"
         'Send /help to get help from me or send /cancel to stop asking to me.\n\n'
-        'Want to know the time or the weather?',
+        'Want to know the time, the weather or the covid?',
 
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True, input_field_placeholder='Time or weather?'
@@ -52,7 +52,7 @@ def time():
 
     date_time = now.strftime('%d/%m/%y, %H:%M:%S')
 
-    return date_time + '  🍖🍔'
+    return date_time + '  🍔'
 
 
 def weather():
@@ -101,11 +101,12 @@ def handleInput(update, context):
             weather(), reply_markup=ReplyKeyboardRemove())
     elif msg == 'covid':
         waiter = 'Wai a minute ...  😷'
+        remind = 'Wear a mask to protect yourself and those around you!'
 
         # wait to fetch data
         update.message.reply_text(waiter, reply_markup=ReplyKeyboardRemove())
-        update.message.reply_text(
-            covid(), reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text(covid(), reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text(remind, reply_markup=ReplyKeyboardRemove())
 
 
 def echo(update, context):
