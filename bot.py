@@ -12,6 +12,7 @@ from telegram.ext import *
 load_dotenv()
 BOT_API_KEY = os.environ.get('BOT_API_KEY')
 WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY')
+COVID_API_KEY = os.environ.get('COVID_API_KEY')
 
 print('Bot started...')
 
@@ -21,13 +22,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# get weather response
-city = 'Da Nang'
-base_url = 'http://api.openweathermap.org/data/2.5/weather?q=' + \
-    city + '&appid=' + WEATHER_API_KEY + '&units=metric&lang=vi'
-response = requests.get(base_url).json()
-
-# TIME, WEATHER = range(2)
 HANDLE = range(1)
 
 
@@ -38,7 +32,7 @@ def start_cmd(update, context):
         fr'Hi {user.mention_markdown_v2()}\!',
     )
 
-    reply_keyboard = [['Time', 'Weather']]
+    reply_keyboard = [['Time', 'Weather', 'Covid']]
 
     update.message.reply_text(
         "Hi! I'm LTUD's bot. I will hold a conversation with you.\n"
@@ -58,15 +52,36 @@ def time():
 
     date_time = now.strftime('%d/%m/%y, %H:%M:%S')
 
-    return date_time
+    return date_time + '  🍖🍔'
 
 
 def weather():
+    city = 'Da Nang'
+    base_url = 'http://api.openweathermap.org/data/2.5/weather?q=' + \
+        city + '&appid=' + WEATHER_API_KEY + '&units=metric&lang=vi'
+    response = requests.get(base_url).json()
+
     description = response['weather'][0]['description'].capitalize()
     temp = math.ceil(int(response['main']['temp']))
 
-    result = fr'{description}, {temp}°C'
+    result = fr'{description}, {temp}°C  ⛅'
 
+    return result
+
+
+def covid():
+    base_url = COVID_API_KEY
+    response = requests.get(base_url).json()
+
+    infected = response['infected']
+    treated = response['treated']
+    recovered = response['recovered']
+    deceased = response['deceased']
+
+    result = fr'Số ca nhiễm: {infected}' + '\n'
+    result += fr'Đã chữa khỏi: {treated}' + '\n'
+    result += fr'Số ca hồi phục: {recovered}' + '\n'
+    result += fr'Giảm {deceased} so với các ngày trước  😢'
     return result
 
 
@@ -79,6 +94,9 @@ def handleInput(update, context):
     elif msg == 'weather':
         update.message.reply_text(
             weather(), reply_markup=ReplyKeyboardRemove())
+    elif msg == 'covid':
+        update.message.reply_text(
+            covid(), reply_markup=ReplyKeyboardRemove())
 
 
 def echo(update, context):
@@ -109,7 +127,7 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_cmd)],
         states={
-            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather|time|weather)$'), handleInput), CommandHandler('cancel', cancel_cmd)],
+            HANDLE: [MessageHandler(Filters.regex('^(Time|Weather|Covid|time|weather|covid)$'), handleInput), CommandHandler('cancel', cancel_cmd)],
         },
         fallbacks=[CommandHandler('cancel', cancel_cmd)],
     )
