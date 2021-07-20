@@ -73,10 +73,26 @@ def covid():
     base_url = COVID_API_KEY
     response = requests.get(base_url).json()
 
-    infected = response['infected']
-    treated = response['treated']
-    recovered = response['recovered']
-    deceased = response['deceased']
+    def seperate(num):
+        i = 1
+        result = ''
+
+        for letter in reversed(str(num)):
+            result += letter
+
+            if i % 3 == 0:
+                result += '.'
+            i += 1
+
+        if result[-1] == '.':
+            result = result[:-1]
+
+        return ''.join(reversed(result))
+
+    infected = seperate(response['infected'])
+    treated = seperate(response['treated'])
+    recovered = seperate(response['recovered'])
+    deceased = seperate(response['deceased'])
 
     result = fr'Số ca nhiễm: {infected}' + '\n'
     result += fr'Đã chữa khỏi: {treated}' + '\n'
@@ -143,8 +159,8 @@ def main():
     )
 
     dp.add_handler(conv_handler)
-    dp.add_handler(MessageHandler(Filters.text, echo))
     dp.add_handler(CommandHandler("help", help_cmd))
+    dp.add_handler(MessageHandler(Filters.text, echo))
 
     updater.start_polling()
 
