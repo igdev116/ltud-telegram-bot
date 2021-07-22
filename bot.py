@@ -96,7 +96,7 @@ def covid():
     deceased = seperate(response['deceased'])
 
     result = fr'Số ca nhiễm: {infected}' + '\n'
-    result += fr'Đã chữa khỏi: {treated}' + '\n'
+    result += fr'Đang điều trị: {treated}' + '\n'
     result += fr'Số ca hồi phục: {recovered}' + '\n'
     result += fr'Giảm {deceased} so với các ngày trước  😢'
 
