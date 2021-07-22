@@ -36,6 +36,7 @@ def start_cmd(update, context):
 
     update.message.reply_text(
         "Hi! I'm LTUD's bot. I will hold a conversation with you.\n"
+        "Use /set <seconds> to set a timer or type /unset to stop.\n"
         'Send /help to get help from me or send /cancel to stop asking to me.\n\n'
         'Want to know the time, the weather or the covid?',
 
@@ -98,7 +99,35 @@ def covid():
     result += fr'Đã chữa khỏi: {treated}' + '\n'
     result += fr'Số ca hồi phục: {recovered}' + '\n'
     result += fr'Giảm {deceased} so với các ngày trước  😢'
+
     return result
+
+
+def timer(context):
+    job = context.job
+    context.bot.send_message(job.context, text=time())
+
+
+def setTimer(update, context):
+    chat_id = update.message.chat_id
+    text = 'Timer successfully set!'
+    error = 'Please type: /set <seconds>'
+
+    try:
+        due = int(context.args[0])
+
+        context.job_queue.run_repeating(timer, interval=due, context=chat_id)
+        update.message.reply_text(text)
+
+    except ValueError:
+        update.message.reply_text(error)
+
+
+def unsetTimer(update, context):
+    text = 'Timer successfully cancelled!'
+
+    context.job_queue.stop()
+    update.message.reply_text(text)
 
 
 def handleInput(update, context):
@@ -159,6 +188,8 @@ def main():
     )
 
     dp.add_handler(conv_handler)
+    dp.add_handler(CommandHandler("set", setTimer))
+    dp.add_handler(CommandHandler("unset", unsetTimer))
     dp.add_handler(CommandHandler("help", help_cmd))
     dp.add_handler(MessageHandler(Filters.text, echo))
 
